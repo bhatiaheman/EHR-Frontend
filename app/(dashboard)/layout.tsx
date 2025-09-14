@@ -3,6 +3,7 @@
 import React from "react";
 import DashBoardSidebar from "@/components/Sidebar";
 import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import TopBar from "@/components/TopBar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Sidebar>
 
             <SidebarInset className="flex-1 bg-white">
+                <TopBar />
                 {children}
             </SidebarInset>
         </div>

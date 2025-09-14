@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FiUser, FiUsers } from "react-icons/fi";
+import { FiUsers } from "react-icons/fi";
 import { SlCalender } from "react-icons/sl";
 import { SiMoneygram } from "react-icons/si";
 import { ImLab } from "react-icons/im";
 import { TbEdit } from "react-icons/tb";
-import { useLogout } from "@/hooks/useAuth";
 
 interface CardData {
   title: string;
@@ -35,13 +34,10 @@ const statusColors: Record<string, string> = {
 
 const Dashboard = () => {
 
-  const logout = useLogout();
-
   const [cards, setCards] = useState<CardData[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showLogout, setShowLogout] = useState(false);
 
   const patientsPerPage = 10;
 
@@ -80,33 +76,10 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col h-screen gap-4">
 
-      <div className="flex justify-between items-center bg-white px-2 py-2 border-b border-gray-300 h-15 sticky top-0">
-        <input
-          type="text"
-          placeholder="Search patients, appointments, bills..."
-          className="flex w-96 border border-gray-300 rounded-lg px-4 py-2 ml-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        />
-        <div className="border rounded-full border-gray-400 p-1 mr-2 cursor-pointer hover:shadow-md"
-         onClick={() => setShowLogout((prev) => !prev)}>
-          <FiUser size={30} />
-        </div>
-
-        {showLogout && (
-          <div className="absolute right-2 top-10 mt-2 w-32 bg-white border rounded-lg shadow-md z-10">
-            <button
-              onClick={() => logout.mutate()}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-500"
-            >
-              Logout
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col">
+      <div className="flex flex-col mt-4">
         <div className="pl-6 space-y-2">
           <h1 className="text-4xl font-semibold">DashBoard</h1>
-          <h3 className="text-xl text-gray-400">
+          <h3 className="text-xl text-muted-foreground">
             Welcome back, Dr. Smith. Here's your patient overview.
           </h3>
         </div>
