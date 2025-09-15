@@ -17,7 +17,6 @@ export interface Patient {
   status: string;
 
   fhirMedications?: MedicationStatement[];
-  fhirAllergies?: AllergyIntolerance[];
   fhirConditions?: Condition[];
 }
 
@@ -29,13 +28,6 @@ export interface MedicationStatement {
   subject: { reference: string };
 }
 
-export interface AllergyIntolerance {
-  id: string;
-  clinicalStatus: { coding: { system: string; code: string; display: string }[] };
-  code: { coding: { system: string; code: string; display: string }[] };
-  patient: { reference: string }; 
-  recordedDate?: string;
-}
 
 export interface Condition {
   id: string;
