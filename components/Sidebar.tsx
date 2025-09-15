@@ -17,7 +17,7 @@ export default function DashBoardSidebar() {
     { href: "/patients", icon: <FiUsers />, label: "Patients" },
     { href: "/appointments", icon: <SlCalender />, label: "Appointments" },
     { href: "/clinical", icon: <TbHeartRateMonitor />, label: "Clinical" },
-    { href: "/billing", icon: <HiOutlineArchiveBox />, label: "Billings" },
+    // { href: "/billing", icon: <HiOutlineArchiveBox />, label: "Billings" },
   ];
 
   return (

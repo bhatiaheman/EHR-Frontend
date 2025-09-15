@@ -1,23 +1,46 @@
-export interface Medication {
-  name: string;
-  dose: string;
-}
-
-export interface Immunization {
-  vaccine: string;
-  status: string;
-}
-
 export interface Patient {
-  id: number;
+  id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   age: number;
   gender: string;
   contact: string;
+  phone?: string;
+  email?: string;
+  birthDate?: string;
   conditions: string[];
-  allergies: string[];
-  medications: Medication[];
-  immunizations: Immunization[];
-  lastVisit: string;
+  allergies: string[]; 
+  medications: { name: string; dose: string }[]; 
+  immunizations: { vaccine: string; status: string }[];
+  lastVisit?: string;
   status: string;
+
+  fhirMedications?: MedicationStatement[];
+  fhirAllergies?: AllergyIntolerance[];
+  fhirConditions?: Condition[];
+}
+
+export interface MedicationStatement {
+  id: string;
+  status: string; 
+  medicationCodeableConcept: { coding: { system: string; code: string; display: string }[] };
+  effectiveDateTime?: string;
+  subject: { reference: string };
+}
+
+export interface AllergyIntolerance {
+  id: string;
+  clinicalStatus: { coding: { system: string; code: string; display: string }[] };
+  code: { coding: { system: string; code: string; display: string }[] };
+  patient: { reference: string }; 
+  recordedDate?: string;
+}
+
+export interface Condition {
+  id: string;
+  clinicalStatus: { coding: { system: string; code: string; display: string }[] };
+  code: { coding: { system: string; code: string; display: string }[] };
+  subject: { reference: string }; 
+  recordedDate?: string;
 }

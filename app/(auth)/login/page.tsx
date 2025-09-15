@@ -11,8 +11,8 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -27,7 +27,7 @@ const LoginPage = () => {
 
     const mutation = useMutation({
         mutationFn: async (data: LoginFormValues) => {
-            const res = await axios.post('/api/login', data);
+            const res = await axios.post('/api/modmed', data);
             return res.data;
         },
 
@@ -57,13 +57,13 @@ const LoginPage = () => {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full mt-2 mb-2">
                 <div>
-                    <label className="block text-sm font-medium">Email</label>
+                    <label className="block text-sm font-medium">Username</label>
                     <input
-                    type="email"
-                    {...register("email")}
+                    type="Username"
+                    {...register("username")}
                     className="mt-1 w-full p-2 border rounded hover:border-blue-400/70"
                     />
-                    {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                    {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
                 </div>
 
                 <div>

@@ -1,7 +1,8 @@
-// PatientFormModal.tsx
-"use client";
-import { useState } from "react";
-import { Patient } from "../../types/patient.types";
+'use client';
+import { useState } from 'react';
+import { Patient } from '@/types/patient.types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface Props {
   patient: Patient;
@@ -9,253 +10,166 @@ interface Props {
   onSubmit: (data: Patient) => void;
 }
 
-export default function PatientFormModal({ patient, onClose, onSubmit }: Props) {
-  const [editedPatient, setEditedPatient] = useState<Patient>(patient);
-  const [activeTab, setActiveTab] = useState<"details" | "allergies" | "medications" | "immunizations">("details");
+export default function PatientModal({ patient, onClose, onSubmit }: Props) {
+  const [editedPatient, setEditedPatient] = useState<Patient>({
+    ...patient,
+    firstName: patient.name.split(' ').slice(0, -1).join(' ') || '',
+    lastName: patient.name.split(' ').pop() || '',
+    birthDate: patient.birthDate || '',
+    phone: patient.phone || '',
+    email: patient.email || '',
+    conditions: [], // Not submitted, managed separately
+    allergies: [], // Not submitted, managed separately
+    medications: [], // Not submitted, managed separately
+    immunizations: [], // Not submitted, managed separately
+    lastVisit: '',
+    status: patient.status || 'Active',
+  });
+  const [errors, setErrors] = useState<{
+    firstName?: string;
+    phone?: string;
+    email?: string;
+    birthDate?: string;
+  }>({});
+
+  const validate = () => {
+    const newErrors: { firstName?: string; phone?: string; email?: string; birthDate?: string } = {};
+    if (!editedPatient.firstName) {
+      newErrors.firstName = 'First name is required';
+    } else if (editedPatient.firstName.length > 100) {
+      newErrors.firstName = 'First name must be 100 characters or less';
+    }
+    if (editedPatient.phone && !/^\d{3}-\d{3}-\d{4}$/.test(editedPatient.phone)) {
+      newErrors.phone = 'Phone must be in format XXX-XXX-XXXX (e.g., 202-555-0123)';
+    }
+    if (editedPatient.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(editedPatient.email)) {
+      newErrors.email = 'Email must be a valid address (e.g., name@domain.com)';
+    }
+    if (!editedPatient.birthDate) {
+      newErrors.birthDate = 'Birth date is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    onSubmit({
+      ...editedPatient,
+      name: `${editedPatient.firstName} ${editedPatient.lastName}`.trim(),
+      contact: editedPatient.phone || editedPatient.email || '',
+      age: editedPatient.birthDate
+        ? new Date().getFullYear() - new Date(editedPatient.birthDate).getFullYear()
+        : 0,
+      conditions: [], // Not submitted
+      allergies: [], // Not submitted
+      medications: [], // Not submitted
+      immunizations: [], // Not submitted
+      lastVisit: '',
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-[90%] max-w-3xl p-6 relative">
-        <button
+      <div className="bg-white rounded-lg w-[90%] max-w-md p-6 relative">
+        <Button
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
           onClick={onClose}
+          variant="ghost"
         >
           X
-        </button>
+        </Button>
 
-        <h2 className="text-2xl font-semibold mb-4">
-          {patient.id === 0 ? "Add Patient" : `${patient.name} Details`}
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+          {patient.id ? `${patient.name} Details` : 'Add Patient'}
         </h2>
 
-        {/* Tabs */}
-        <div className="flex border-b mb-4">
-          {["details", "allergies", "medications", "immunizations"].map((tab) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 -mb-px ${
-                activeTab === tab ? "border-b-2 border-blue-500 font-semibold" : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab(tab as any)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-
         <div className="space-y-4">
-          {/* Details Tab */}
-          {activeTab === "details" && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="font-medium">Name</label>
-                <input
-                  type="text"
-                  value={editedPatient.name}
-                  onChange={(e) =>
-                    setEditedPatient({ ...editedPatient, name: e.target.value })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-              <div>
-                <label className="font-medium">Age</label>
-                <input
-                  type="number"
-                  value={editedPatient.age}
-                  onChange={(e) =>
-                    setEditedPatient({ ...editedPatient, age: Number(e.target.value) })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-              <div>
-                <label className="font-medium">Gender</label>
-                <input
-                  type="text"
-                  value={editedPatient.gender}
-                  onChange={(e) =>
-                    setEditedPatient({ ...editedPatient, gender: e.target.value })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-              <div>
-                <label className="font-medium">Contact</label>
-                <input
-                  type="text"
-                  value={editedPatient.contact}
-                  onChange={(e) =>
-                    setEditedPatient({ ...editedPatient, contact: e.target.value })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-              <div>
-                <label className="font-medium">Conditions</label>
-                <input
-                  type="text"
-                  value={editedPatient.conditions.join(", ")}
-                  onChange={(e) =>
-                    setEditedPatient({
-                      ...editedPatient,
-                      conditions: e.target.value.split(",").map((c) => c.trim()),
-                    })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-
-              <div>
-                <label className="font-medium">Last Visit</label>
-                <input
-                  type="date"
-                  value={editedPatient.lastVisit}
-                  onChange={(e) =>
-                    setEditedPatient({ ...editedPatient, lastVisit: e.target.value })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Allergies Tab */}
-          {activeTab === "allergies" && (
-            <div className="space-y-2">
-              {editedPatient.allergies.map((a, idx) => (
-                <input
-                  key={idx}
-                  type="text"
-                  value={a}
-                  onChange={(e) =>
-                    setEditedPatient({
-                      ...editedPatient,
-                      allergies: editedPatient.allergies.map((al, i) =>
-                        i === idx ? e.target.value : al
-                      ),
-                    })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-              ))}
-              <button
-                type="button"
-                className="px-3 py-1 bg-green-500 text-white rounded"
-                onClick={() =>
-                  setEditedPatient({
-                    ...editedPatient,
-                    allergies: [...editedPatient.allergies, ""],
-                  })
-                }
-              >
-                + Add Allergy
-              </button>
-            </div>
-          )}
-
-          {/* Medications Tab */}
-          {activeTab === "medications" && (
-            <div className="space-y-2">
-              {editedPatient.medications.map((m, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={m.name}
-                    onChange={(e) =>
-                      setEditedPatient({
-                        ...editedPatient,
-                        medications: editedPatient.medications.map((med, i) =>
-                          i === idx ? { ...med, name: e.target.value } : med
-                        ),
-                      })
-                    }
-                    className="border rounded px-2 py-1 flex-1"
-                  />
-                  <input
-                    type="text"
-                    value={m.dose}
-                    onChange={(e) =>
-                      setEditedPatient({
-                        ...editedPatient,
-                        medications: editedPatient.medications.map((med, i) =>
-                          i === idx ? { ...med, dose: e.target.value } : med
-                        ),
-                      })
-                    }
-                    className="border rounded px-2 py-1 flex-1"
-                  />
-                </div>
-              ))}
-              <button
-                type="button"
-                className="px-3 py-1 bg-green-500 text-white rounded"
-                onClick={() =>
-                  setEditedPatient({
-                    ...editedPatient,
-                    medications: [...editedPatient.medications, { name: "", dose: "" }],
-                  })
-                }
-              >
-                + Add Medication
-              </button>
-            </div>
-          )}
-
-          {/* Immunizations Tab */}
-          {activeTab === "immunizations" && (
-            <div className="space-y-2">
-              {editedPatient.immunizations.map((imm, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={imm.vaccine}
-                    onChange={(e) =>
-                      setEditedPatient({
-                        ...editedPatient,
-                        immunizations: editedPatient.immunizations.map((i, iidx) =>
-                          iidx === idx ? { ...i, vaccine: e.target.value } : i
-                        ),
-                      })
-                    }
-                    className="border rounded px-2 py-1 flex-1"
-                  />
-                  <input
-                    type="text"
-                    value={imm.status}
-                    onChange={(e) =>
-                      setEditedPatient({
-                        ...editedPatient,
-                        immunizations: editedPatient.immunizations.map((i, iidx) =>
-                          iidx === idx ? { ...i, status: e.target.value } : i
-                        ),
-                      })
-                    }
-                    className="border rounded px-2 py-1 flex-1"
-                  />
-                </div>
-              ))}
-              <button
-                type="button"
-                className="px-3 py-1 bg-green-500 text-white rounded"
-                onClick={() =>
-                  setEditedPatient({
-                    ...editedPatient,
-                    immunizations: [...editedPatient.immunizations, { vaccine: "", status: "" }],
-                  })
-                }
-              >
-                + Add Immunization
-              </button>
-            </div>
-          )}
+          <div>
+            <label className="font-medium text-gray-600">First Name</label>
+            <Input
+              type="text"
+              value={editedPatient.firstName}
+              onChange={(e) =>
+                setEditedPatient({ ...editedPatient, firstName: e.target.value })
+              }
+              className="border rounded px-2 py-1 w-full"
+            />
+            {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
+          </div>
+          <div>
+            <label className="font-medium text-gray-600">Last Name</label>
+            <Input
+              type="text"
+              value={editedPatient.lastName}
+              onChange={(e) =>
+                setEditedPatient({ ...editedPatient, lastName: e.target.value })
+              }
+              className="border rounded px-2 py-1 w-full"
+            />
+          </div>
+          <div>
+            <label className="font-medium text-gray-600">Birth Date</label>
+            <Input
+              type="date"
+              value={editedPatient.birthDate}
+              onChange={(e) =>
+                setEditedPatient({ ...editedPatient, birthDate: e.target.value })
+              }
+              className="border rounded px-2 py-1 w-full"
+            />
+            {errors.birthDate && <p className="text-red-500 text-sm">{errors.birthDate}</p>}
+          </div>
+          <div>
+            <label className="font-medium text-gray-600">Gender</label>
+            <select
+              value={editedPatient.gender}
+              onChange={(e) =>
+                setEditedPatient({ ...editedPatient, gender: e.target.value })
+              }
+              className="border rounded px-2 py-1 w-full"
+            >
+              <option value="">Select...</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+          <div>
+            <label className="font-medium text-gray-600">Phone</label>
+            <Input
+              type="text"
+              value={editedPatient.phone}
+              onChange={(e) =>
+                setEditedPatient({ ...editedPatient, phone: e.target.value })
+              }
+              className="border rounded px-2 py-1 w-full"
+              placeholder="e.g., 202-555-0123"
+            />
+            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+          </div>
+          <div>
+            <label className="font-medium text-gray-600">Email</label>
+            <Input
+              type="text"
+              value={editedPatient.email}
+              onChange={(e) =>
+                setEditedPatient({ ...editedPatient, email: e.target.value })
+              }
+              className="border rounded px-2 py-1 w-full"
+              placeholder="e.g., john.doe@hospital.com"
+            />
+            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+          </div>
         </div>
 
-        <button
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => onSubmit(editedPatient)}
+        <Button
+          className="mt-4 bg-blue-500 hover:bg-blue-600 text-white"
+          onClick={handleSubmit}
         >
-          {patient.id === 0 ? "Add Patient" : "Update"}
-        </button>
+          {patient.id ? 'Update' : 'Add'}
+        </Button>
       </div>
     </div>
   );

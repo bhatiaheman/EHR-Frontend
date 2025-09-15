@@ -1,100 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Patient } from "../types/patient.types";
 import toast from "react-hot-toast";
+import axios from "axios";
 
-export let patients: Patient[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    age: 25,
-    gender: "Male",
-    contact: "123-456-7890",
-    conditions: ["Diabetes", "Hypertension"],
-    allergies: ["Peanuts", "Dust"],
-    medications: [
-      { name: "Metformin", dose: "500mg" },
-      { name: "Lisinopril", dose: "10mg" },
-    ],
-    immunizations: [
-      { vaccine: "COVID-19", status: "Completed" },
-      { vaccine: "Hepatitis B", status: "Pending" },
-    ],
-    lastVisit: "2024-01-15",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    age: 32,
-    gender: "Female",
-    contact: "987-654-3210",
-    conditions: ["Asthma"],
-    allergies: ["Pollen"],
-    medications: [
-      { name: "Inhaler", dose: "2 puffs" },
-      { name: "Albuterol", dose: "90mcg" },
-    ],
-    immunizations: [
-      { vaccine: "Flu", status: "Completed" },
-      { vaccine: "Tetanus", status: "Completed" },
-    ],
-    lastVisit: "2024-02-10",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    name: "Alice Johnson",
-    age: 40,
-    gender: "Female",
-    contact: "555-123-9876",
-    conditions: ["Arthritis"],
-    allergies: [],
-    medications: [
-      { name: "Ibuprofen", dose: "400mg" },
-      { name: "Glucosamine", dose: "500mg" },
-    ],
-    immunizations: [
-      { vaccine: "Flu", status: "Completed" },
-      { vaccine: "COVID-19", status: "Completed" },
-    ],
-    lastVisit: "2024-03-20",
-    status: "Recovered",
-  },
-  {
-    id: 4,
-    name: "Bob Brown",
-    age: 50,
-    gender: "Male",
-    contact: "222-456-7890",
-    conditions: ["High Cholesterol"],
-    allergies: ["Shellfish"],
-    medications: [
-      { name: "Atorvastatin", dose: "20mg" },
-    ],
-    immunizations: [
-      { vaccine: "Hepatitis A", status: "Completed" },
-      { vaccine: "Flu", status: "Pending" },
-    ],
-    lastVisit: "2024-04-12",
-    status: "Critical",
-  },
-];
 
-export function useAddPatient() {
-  const qc = useQueryClient();
+export const useAddPatient = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (newPatient: Patient) => {
-
-      patients.push(newPatient);
-      return newPatient;
+    mutationFn: async (patient: Patient) => {
+      const response = await fetch('/api/patient', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patient),
+      });
+      if (response.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create patient');
+      }
+      return response.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["patients"] });
-      toast.success("Patient added successfully");
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      toast.success('Patient added successfully');
     },
 
-    onError: () => {
-      toast.error("Error adding patient");
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to add patient');
+    }
+  });
+};
+
+export function usePatient(id: string) {
+  return useQuery<Patient>({
+    queryKey: ['patient', id],
+    queryFn: async () => {
+      const res = await axios.get(`/api/patient?id=${id}`);
+      return res.data;
     }
   });
 }
@@ -103,29 +47,33 @@ export function usePatients() {
   return useQuery<Patient[]>({
     queryKey: ["patients"],
     queryFn: async () => {
-      await new Promise((res) => setTimeout(res, 500)); 
-      return patients;
+      const res = await axios.get('/api/patient'); 
+      return res.data;
     },
   });
 }
 
 export function useUpdatePatient() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updated: Patient) => {
-      patients = patients.map((p) =>
-        p.id === updated.id ? { ...p, ...updated } : p
-      );
-      return updated;
+    mutationFn: async (patient: Partial<Patient> & { id: string }) => {
+      const res = await axios.put(`/api/patient?id=${patient.id}`, {
+        name: patient.name,
+        contact: patient.contact,
+        gender: patient.gender,
+        birthDate: patient.age
+          ? new Date(new Date().setFullYear(new Date().getFullYear() - patient.age)).toISOString().split('T')[0]
+          : undefined,
+      });
+      return res.data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["patients"] });
-      toast.success("Patient updated successfully");
+      toast.success('Patient updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
     },
-
-    onError: () => {
-      toast.error("Error updating patient");
-    }
+    onError: (err: any) => {
+      toast.error('Failed to update patient');
+    },
   });
 }
