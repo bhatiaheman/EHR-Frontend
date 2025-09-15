@@ -1,4 +1,4 @@
-import { logoutApi } from "@/app/api/logout/route";
+import { logoutApi } from "@/lib/logout/route";
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast";
 
