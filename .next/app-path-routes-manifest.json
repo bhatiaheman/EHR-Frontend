@@ -1,0 +1,15 @@
+{
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/appointments/page": "/appointments",
+  "/(dashboard)/dashboard/page": "/dashboard",
+  "/(dashboard)/patients/page": "/patients",
+  "/_not-found/page": "/_not-found",
+  "/api/allergy/route": "/api/allergy",
+  "/api/condition/route": "/api/condition",
+  "/api/login/route": "/api/login",
+  "/api/medication/route": "/api/medication",
+  "/api/modmed/route": "/api/modmed",
+  "/api/patient/route": "/api/patient",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/"
+}
